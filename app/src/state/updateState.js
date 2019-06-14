@@ -4,8 +4,8 @@ import { ipfs } from '../ipfs'
 /*
 {
   discussions: {
-    id1: {
-      discussionId: {
+    discussionId: {
+      postId: {
         author:
         createdAt:
         postId:
@@ -19,11 +19,35 @@ import { ipfs } from '../ipfs'
 
 export const handleHide = async (
   state,
-  { returnValues: { author, discussionId, postId, hiddenAt } }
+  { returnValues: { discussionId, postId } }
 ) => {
   const newState = cloneDeep(state)
   delete newState.discussions[discussionId][postId]
   return newState
+}
+
+export const handleRevise = async (
+  state,
+  { returnValues: { author, revisedAt, discussionId, postId, revisedPostCid } }
+) => {
+  const newState = cloneDeep(state)
+  try {
+    const {
+      value: { text, revisions },
+    } = await ipfs.dag.get(revisedPostCid)
+
+    newState.discussions[discussionId][postId] = {
+      ...newState.discussions[discussionId][postId],
+      author,
+      text,
+      postCid: revisedPostCid,
+      revisedAt,
+      revisions,
+    }
+    return newState
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 export const handlePost = async (
@@ -44,6 +68,8 @@ export const handlePost = async (
       author,
       createdAt,
       text,
+      postCid,
+      revisions: [],
     }
     return newState
   } catch (error) {

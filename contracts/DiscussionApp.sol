@@ -8,7 +8,7 @@ contract DiscussionApp is AragonApp {
     using SafeMath for uint256;
 
     event Post(address indexed author, string postCid, string discussionId, uint postId, uint createdAt);
-    event Edit(address indexed author);
+    event Revise(address indexed author, string revisedPostCid, string discussionId, uint postId, uint createdAt, uint revisedAt);
     event Hide(address indexed author, string discussionId, uint postId, uint hiddenAt);
 
     bytes32 constant public DISCUSSION_POSTER_ROLE = keccak256("DISCUSSION_POSTER_ROLE");
@@ -20,6 +20,7 @@ contract DiscussionApp is AragonApp {
         uint id;
         uint createdAt;
         bool show;
+        string[] revisionCids;
     }
 
     mapping(address => DiscussionPost[]) public posts;
@@ -46,5 +47,15 @@ contract DiscussionApp is AragonApp {
         require(post.author == author, "You cannot hide a post you did not author.");
         post.show = false;
         emit Hide(author, discussionId, postId, now);
+    }
+
+    function revise(address author, string revisedPostCid, uint postId, string discussionId) external auth(DISCUSSION_POSTER_ROLE) {
+        DiscussionPost storage post = posts[author][postId];
+        require(post.author == author, "You cannot revise a post you did not author.");
+        // add the current post to the revision history
+        // should we limit the number of revisions you can make to save storage?
+        post.revisionCids.push(post.postCid);
+        post.postCid = revisedPostCid;
+        emit Revise(author, revisedPostCid, discussionId, postId, post.createdAt, now);
     }
 }

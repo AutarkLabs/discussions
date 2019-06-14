@@ -12,12 +12,11 @@ function App() {
   const [text, setText] = useState('')
   const [id, setId] = useState(-1)
 
-  console.log('APP STATE', appState)
   const post = async () => {
     const discussionPost = {
       author: connectedAccount,
       mentions: [],
-      type: 'DiscussionPost',
+      type: 'Post',
       text,
     }
 
@@ -26,6 +25,22 @@ function App() {
       const cid = result.toBaseEncodedString()
       await api.post(connectedAccount, cid, '123').toPromise()
       setText('')
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const revise = async () => {
+    let discussionPost = appState.discussions['123'][id]
+    discussionPost.text = text
+    discussionPost.revisions.push(discussionPost.postCid)
+    delete discussionPost.postCid
+    try {
+      const result = await ipfs.dag.put(discussionPost, {})
+      const cid = result.toBaseEncodedString()
+      await api.revise(connectedAccount, cid, id, '123').toPromise()
+      setText('')
+      setId(-1)
     } catch (error) {
       console.error(error)
     }
@@ -40,6 +55,7 @@ function App() {
     }
   }
 
+  console.log(appState)
   return (
     <Main>
       <BaseLayout>
@@ -49,6 +65,7 @@ function App() {
           value={text}
           onChange={e => setText(e.target.value)}
         />
+        Enter post Id to hide or revise post
         <TextInput.Number
           placeholder="enter post ID to hide"
           value={id}
@@ -57,6 +74,9 @@ function App() {
         <Buttons>
           <Button mode="secondary" onClick={post}>
             Make post
+          </Button>
+          <Button mode="secondary" onClick={revise}>
+            Revise post
           </Button>
           <Button mode="secondary" onClick={hide}>
             Hide post

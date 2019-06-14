@@ -2,7 +2,7 @@ import '@babel/polyfill'
 import { of } from 'rxjs'
 import AragonApi from '@aragon/api'
 
-import { handleHide, handlePost, initialState } from './state'
+import { handleHide, handlePost, handleRevise, initialState } from './state'
 
 const INITIALIZATION_TRIGGER = Symbol('INITIALIZATION_TRIGGER')
 
@@ -17,6 +17,9 @@ api.store(
         return newState
       case 'Post':
         newState = await handlePost(state, event)
+        return newState
+      case 'Revise':
+        newState = await handleRevise(state, event)
         return newState
       case 'Hide':
         newState = await handleHide(state, event)
