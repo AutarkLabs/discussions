@@ -29,33 +29,33 @@ contract DiscussionApp is AragonApp {
         initialized();
     }
 
-    function post(address author, string postCid, string discussionId) external auth(DISCUSSION_POSTER_ROLE) {
+    function post(string postCid, string discussionId) external auth(DISCUSSION_POSTER_ROLE) {
         DiscussionPost storage post;
-        post.author = author;
+        post.author = msg.sender;
         post.postCid = postCid;
         post.discussionId = discussionId;
         post.createdAt = now;
         post.show = true;
-        uint postId = posts[author].length;
+        uint postId = posts[msg.sender].length;
         post.id = postId;
-        posts[author].push(post);
-        emit Post(author, postCid, discussionId, postId, now);
+        posts[msg.sender].push(post);
+        emit Post(msg.sender, postCid, discussionId, postId, now);
     }
 
-    function hide(address author, uint postId, string discussionId) external auth(DISCUSSION_POSTER_ROLE) {
-        DiscussionPost storage post = posts[author][postId];
-        require(post.author == author, "You cannot hide a post you did not author.");
+    function hide(uint postId, string discussionId) external auth(DISCUSSION_POSTER_ROLE) {
+        DiscussionPost storage post = posts[msg.sender][postId];
+        require(post.author == msg.sender, "You cannot hide a post you did not author.");
         post.show = false;
-        emit Hide(author, discussionId, postId, now);
+        emit Hide(msg.sender, discussionId, postId, now);
     }
 
-    function revise(address author, string revisedPostCid, uint postId, string discussionId) external auth(DISCUSSION_POSTER_ROLE) {
-        DiscussionPost storage post = posts[author][postId];
-        require(post.author == author, "You cannot revise a post you did not author.");
+    function revise(string revisedPostCid, uint postId, string discussionId) external auth(DISCUSSION_POSTER_ROLE) {
+        DiscussionPost storage post = posts[msg.sender][postId];
+        require(post.author == msg.sender, "You cannot revise a post you did not author.");
         // add the current post to the revision history
         // should we limit the number of revisions you can make to save storage?
         post.revisionCids.push(post.postCid);
         post.postCid = revisedPostCid;
-        emit Revise(author, revisedPostCid, discussionId, postId, post.createdAt, now);
+        emit Revise(msg.sender, revisedPostCid, discussionId, postId, post.createdAt, now);
     }
 }

@@ -23,7 +23,7 @@ function App() {
     try {
       const result = await ipfs.dag.put(discussionPost, {})
       const cid = result.toBaseEncodedString()
-      await api.post(connectedAccount, cid, '123').toPromise()
+      await api.post(cid, '123').toPromise()
       setText('')
     } catch (error) {
       console.error(error)
@@ -38,7 +38,7 @@ function App() {
     try {
       const result = await ipfs.dag.put(discussionPost, {})
       const cid = result.toBaseEncodedString()
-      await api.revise(connectedAccount, cid, id, '123').toPromise()
+      await api.revise(cid, id, '123').toPromise()
       setText('')
       setId(-1)
     } catch (error) {
@@ -48,7 +48,7 @@ function App() {
 
   const hide = async () => {
     try {
-      await api.hide(connectedAccount, id, '123').toPromise()
+      await api.hide(id, '123').toPromise()
       setId(-1)
     } catch (error) {
       console.error(error)
